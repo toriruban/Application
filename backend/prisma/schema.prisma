@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  email String @unique
+  password String
+  name String
+  createdAt DateTime @default(now())
+
+  organizedEvents Event[] @relation("Organizer")
+  participations Participant[]
+}
+
+model Event {
+  id Int @id @default(autoincrement())
+  title String
+  description String
+  date DateTime
+  location String
+  capacity Int?
+  visibility String @default("public")
+  createdAt DateTime @default(now())
+
+  organizerId Int
+  organizer User @relation("Organizer", fields: [organizerId], references: [id])
+  participants Participant[]
+}
+
+model Participant {
+  id Int @id @default(autoincrement())
+  userId Int
+  eventId Int
+  user User @relation(fields: [userId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
+  @@unique ([userId, eventId])
+}
