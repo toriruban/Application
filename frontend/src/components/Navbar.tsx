@@ -17,7 +17,7 @@ export default function Navbar() {
                         <Calendar size={16} />
                         My events
                     </Link>
-                    <Link to='events/create' className='flex items-center gap-2 bg-indigo-600 text-slate-50 px-4 py-2 rounded-lg hover:text-indigo-900'>
+                    <Link to='/events/create' className='flex items-center gap-2 bg-indigo-600 text-slate-50 px-4 py-2 rounded-lg hover:text-indigo-900'>
                         <Plus size={16} />
                         Create Event
                     </Link>

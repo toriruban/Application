@@ -167,7 +167,7 @@ export default function EventDetailPage() {
                 <button
                   onClick={handleLeave}
                   disabled={joining}
-                  className="border border-gray-300 px-6 py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                  className="cursor-pointer border border-gray-300 px-6 py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50"
                 >
                   {joining ? 'Loading...' : 'Leave Event'}
                 </button>
