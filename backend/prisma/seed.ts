@@ -42,6 +42,7 @@ async function main() {
       },
     });
 
+
     await prisma.event.upsert({
       where: { id: 2 },
       update: {},
@@ -52,7 +53,7 @@ async function main() {
         location: 'Zurich, Switzerland',
         capacity: 30,
         visibility: 'public',
-        organizerId: user2.id,
+        organizerId: user1.id,
       },
     });
 
@@ -67,6 +68,62 @@ async function main() {
         capacity: 50,
         visibility: 'public',
         organizerId: user1.id,
+      },
+    });
+
+    await prisma.event.upsert({
+      where: { id: 4 },
+      update: {},
+      create: {
+        title: 'Design Workshop',
+        description: 'Hands-on UI/UX design workshop',
+        date: new Date('2026-04-28T10:00:00'),
+        location: 'Berlin, Germany',
+        capacity: 20,
+        visibility: 'public',
+        organizerId: user2.id,
+      },
+    });
+    
+    await prisma.event.upsert({
+      where: { id: 5 },
+      update: {},
+      create: {
+        title: 'JavaScript Deep Dive',
+        description: 'Advanced JavaScript workshop for developers',
+        date: new Date('2026-05-02T14:00:00'),
+        location: 'London, UK',
+        capacity: 25,
+        visibility: 'public',
+        organizerId: user2.id,
+      },
+    });
+
+    await prisma.event.upsert({
+      where: { id: 6 },
+      update: {},
+      create: {
+        title: 'AI & Machine Learning Summit',
+        description: 'Conference on AI trends and machine learning applications',
+        date: new Date('2026-05-10T09:00:00'),
+        location: 'Paris, France',
+        capacity: 150,
+        visibility: 'public',
+        organizerId: user2.id,
+      },
+    });
+
+    await prisma.event.upsert({
+      where: { id: 7 },
+      update: {},
+      create: {
+        title: 'Frontend Bootcamp',
+        description: 'Intensive 3-day frontend development bootcamp',
+        date: new Date('2026-05-15T10:00:00'),
+        location: 'Amsterdam, Netherlands',
+        capacity: 40,
+        visibility: 'public',
+        organizerId: user2.id,
       },
     });
 
