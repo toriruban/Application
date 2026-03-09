@@ -44,7 +44,7 @@ export const getEventsById = async(req: Request, res: Response) => {
     }
 };
 
-export const createEvent = async(req: Request, res: Response) => {
+export const createEvent = async (req: Request, res: Response) => {
     try {
         const dto = await createEventSchema.validate(req.body) as CreateEventDto;
         const event = await prisma.event.create({
