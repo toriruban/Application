@@ -105,13 +105,12 @@ export default function EventDetailPage() {
         <Navbar />
         <div className="max-w-3xl mx-auto px-6 py-8">
           {/* back button */}
-          <Link
-            to="/events"
-            className="flex items-center gap-2 text-neutral-500 hover:text-neutral-900 mb-6"
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-neutral-500 hover:text-neutral-900 mb-6 cursor-pointer"
           >
             <ArrowLeft size={16} /> Back
-          </Link>
-         
+          </button>
                 {isOrganizer && (
             <div className="flex gap-2">
               <Link

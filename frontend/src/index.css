@@ -1,1 +1,8 @@
 @import "tailwindcss";
+@import "react-big-calendar/lib/css/react-big-calendar.css";
+
+.rbc-day-bg,
+.rbc-day-slot,
+.rbc-time-slot {
+  cursor: pointer;
+}
