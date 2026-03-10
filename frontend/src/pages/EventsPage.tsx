@@ -18,6 +18,7 @@ interface Event {
 
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([])
+  const [search, setSearch] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
 
@@ -47,6 +48,10 @@ export default function EventsPage() {
       </div>
     )
 
+  const filteredEvents = events.filter((e) =>
+    e.title.toLowerCase().includes(search.toLowerCase())
+  )
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
@@ -68,6 +73,8 @@ export default function EventsPage() {
             <input
               type="text"
               placeholder="Search events..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2"
             />
           </div>
@@ -76,7 +83,7 @@ export default function EventsPage() {
 
         {/* картки */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {events.map((event) => (
+          {filteredEvents.map((event) => (
             <Link
               key={event.id}
               to={`/events/${event.id}`}
