@@ -1,54 +1,54 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom'
+import api from '../services/api'
+import axios from 'axios'
 import Navbar from '../components/Navbar'
 import { Link } from 'react-router-dom'
 import { Calendar, Clock, ArrowLeft } from 'lucide-react'
 
 export default function CreateEventPage() {
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [date, setDate] = useState('');
-    const [time, setTime] = useState('');
-    const [location, setLocation] = useState('');
-    const [capacity, setCapacity] = useState('');
-    const [visibility, setVisibility] = useState('public');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [date, setDate] = useState('')
+  const [time, setTime] = useState('')
+  const [location, setLocation] = useState('')
+  const [capacity, setCapacity] = useState('')
+  const [visibility, setVisibility] = useState('public')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-    const navigate = useNavigate();
-    
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
+  const navigate = useNavigate()
 
-        const eventDate = new Date(`${date}T${time}`);
-        if (eventDate < new Date()) {
-            setError('Cannot create event in the past');
-            return;
-        }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
 
-        setLoading(true);
-        try {
-            const response = await api.post('/events', {
-                title,
-                description,
-                date: eventDate.toISOString(),
-                location,
-                capacity: capacity ? Number(capacity) : null,
-                visibility,
-            });
-            navigate(`/events/${response.data.id}`);
-        } catch (error) {
-            if (axios.isAxiosError(error)) {
-                setError(error.response?.data?.message || 'Failed to create event')
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
-    
+    const eventDate = new Date(`${date}T${time}`)
+    if (eventDate < new Date()) {
+      setError('Cannot create event in the past')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const response = await api.post('/events', {
+        title,
+        description,
+        date: eventDate.toISOString(),
+        location,
+        capacity: capacity ? Number(capacity) : null,
+        visibility,
+      })
+      navigate(`/events/${response.data.id}`)
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        setError(error.response?.data?.message || 'Failed to create event')
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -62,7 +62,7 @@ export default function CreateEventPage() {
         </Link>
 
         <form onSubmit={handleSubmit}>
-          <div className="max-w-2xl p-5 bg-neutral-50 rounded-lg rounded-lg border border-slate-200">
+          <div className="max-w-2xl p-5 bg-neutral-50 rounded-lg border border-slate-200">
             <h2 className="text-2xl font-bold text-gray-900 mb-1 ml-8">
               Create new event
             </h2>
@@ -114,18 +114,16 @@ export default function CreateEventPage() {
                   Date
                   <span className="text-red-500 pl-2">*</span>
                 </label>
-                <div className="relative">
+                <div className="flex items-center gap-2 mt-2 border border-gray-300 rounded-lg px-4 py-2 focus-within:ring-2 focus-within:ring-indigo-500">
                   <input
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
                     placeholder="dd.mm.yyyy"
-                    className="w-full mt-2 placeholder-gray-400 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className={`flex-1 outline-none bg-transparent ${date ? 'text-gray-900' : 'text-gray-400'}`}
                     required
                   />
-                  <div className="absolute inset-y-0 right-3 flex items-center pt-1 pointer-events-none text-gray-400">
-                    <Calendar size={18} />
-                  </div>
+                  <Calendar size={18} className="text-gray-400 shrink-0" />
                 </div>
               </div>
 
@@ -135,18 +133,16 @@ export default function CreateEventPage() {
                   Time
                   <span className="text-red-500 pl-2">*</span>
                 </label>
-                <div className="relative">
+                <div className="flex items-center gap-2 mt-2 border border-gray-300 rounded-lg px-4 py-2 focus-within:ring-2 focus-within:ring-indigo-500">
                   <input
                     type="time"
                     value={time}
                     onChange={(e) => setTime(e.target.value)}
                     placeholder="--.--"
-                    className="w-full mt-2 placeholder-gray-400 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className={`flex-1 outline-none bg-transparent ${time ? 'text-gray-900' : 'text-gray-400'}`}
                     required
                   />
-                  <div className="absolute inset-y-0 right-3 flex items-center pt-1 pointer-events-none text-gray-400">
-                    <Clock size={18} />
-                  </div>
+                  <Clock size={18} className="text-gray-400 shrink-0" />
                 </div>
               </div>
             </div>
@@ -243,7 +239,7 @@ export default function CreateEventPage() {
               <button
                 type="button"
                 onClick={() => navigate('/events')}
-                className="bg-gray-200 text-gray-500 hover:text-white hover:bg-red-500 cursor-pointer py-2 rounded-lg rounded-lg border border-slate-200"
+                className="bg-gray-200 text-gray-500 hover:text-white hover:bg-red-500 cursor-pointer py-2 rounded-lg border border-slate-200"
               >
                 Cancel
               </button>
