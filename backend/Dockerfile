@@ -5,11 +5,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-COPY prisma ./prisma
-RUN npx prisma generate
-
 COPY . .
-RUN npm run build
+RUN npx prisma generate
+RUN npm run build && mkdir -p dist/src/generated && cp -r src/generated/prisma dist/src/generated/
 
 EXPOSE 8000
-CMD ["node", "dist/server.js"]
+CMD ["node", "dist/src/server.js"]
