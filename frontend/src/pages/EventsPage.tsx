@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
 import { Search, Calendar, Clock, MapPin, Users } from 'lucide-react'
-import { Link } from 'react-router-dom'
-
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../store/authStore'
 interface Event {
   id: number
   title: string
@@ -22,6 +22,10 @@ export default function EventsPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
 
+  const { user, isAuthenticated } = useAuthStore()
+  const navigate = useNavigate()
+
+
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -35,6 +39,19 @@ export default function EventsPage() {
     }
     fetchEvents()
   }, [])
+
+  const handleEvents = async (eventId: number, e: React.MouseEvent) => {
+    e.preventDefault()
+
+    if (!isAuthenticated) {
+      navigate('/login')
+      return
+    }
+    await api.post(`/events/${eventId}/join`)
+    const response = await api.get('/events')
+    setEvents(response.data)
+  }
+
   if (loading)
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -121,9 +138,40 @@ export default function EventsPage() {
                 </div>
               </div>
               <hr className="border-gray-200" />
-              <button className="cursor-pointer mt-auto w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600">
-                Join Event
-              </button>
+              {(() => {
+                const isParticipant =
+                  user && event.participants.some((p) => p.userId === user.id)
+                const isFull = event.capacity
+                  ? event.participants.length >= event.capacity
+                  : false
+
+                if (isParticipant) {
+                  return (
+                    <button className="w-full bg-gray-400 text-white py-2 rounded-lg cursor-not-allowed">
+                      Already joined
+                    </button>
+                  )
+                }
+
+                if (isFull) {
+                  return (
+                    <button
+                      disabled
+                      className="w-full bg-gray-400 text-white py-2 rounded-lg cursor-not-allowed"
+                    >
+                      Event Full
+                    </button>
+                  )
+                }
+                return (
+                  <button
+                    onClick={(e) => handleEvents(event.id, e)}
+                    className="cursor-pointer mt-auto w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600"
+                  >
+                    Join Event
+                  </button>
+                )
+              })()}
             </Link>
           ))}
         </div>
