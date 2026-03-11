@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { Calendar, Clock, MapPin, Users, ArrowLeft } from 'lucide-react'
+import { Calendar, Clock, MapPin, Users, ArrowLeft, X } from 'lucide-react'
 import { useAuthStore } from '../store/authStore'
 import api from '../services/api'
 import axios from 'axios'
@@ -28,6 +28,9 @@ export default function EventDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [joining, setJoining] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteSuccess, setDeleteSuccess] = useState(false)
+
 
   const isParticipant = event?.participants.some((p) => p.userId === user?.id)
   const isOrganizer = event?.organizerId === user?.id
@@ -79,12 +82,16 @@ export default function EventDetailPage() {
     }
   }
 
-  const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this event?')) return
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true)
+  };
 
+  const handleDeleteConfirm = async () => {
+     setShowDeleteModal(false)
     try {
       await api.delete(`/events/${id}`)
-      navigate('/events')
+      setDeleteSuccess(true)  
+      setTimeout(() => navigate('/events'), 1500)
     } catch {
       alert('Failed to delete event')
     }
@@ -105,6 +112,13 @@ export default function EventDetailPage() {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
+      
+      {deleteSuccess && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg z-50">
+          Event deleted successfully
+        </div>
+      )}
+
       <div className="max-w-3xl mx-auto px-6 py-8">
         {/* back button */}
         <button
@@ -122,11 +136,43 @@ export default function EventDetailPage() {
               Edit
             </Link>
             <button
-              onClick={handleDelete}
+              onClick={handleDeleteClick}
               className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 cursor-pointer"
             >
               Delete
             </button>
+          </div>
+        )}
+
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4">
+              <div className="flex justify-end mb-2">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="bg-indigo-200 text-gray-800 hover:text-gray-900 rounded-full p-1.5 cursor-pointer"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete this event?
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 bg-green-200 hover:bg-green-400 hover:text-white cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 bg-red-400 hover:bg-red-500 hover:text-white cursor-pointer"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
