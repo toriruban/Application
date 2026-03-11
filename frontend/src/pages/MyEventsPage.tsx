@@ -82,31 +82,42 @@ export default function MyEventsPage() {
           </Link>
         </div>
 
-        {/* Calendar */}
-        <div className="h-500px lg:h-[calc(100vh-200px)] p-4 mt-5 bg-gray-50 rounded-lg">
-          <Calendar
-            localizer={localizer}
-            events={calendarEvents}
-            startAccessor="start"
-            endAccessor="end"
-            view={currentView}
-            onView={setCurrentView}
-            date={currentDate}
-            onNavigate={setCurrentDate}
-            selectable={true}
-            onSelectSlot={(slot) => {
-              setCurrentDate(slot.start)
-              setCurrentView(Views.WEEK)
-            }}
-            onSelectEvent={(event) =>
-              navigate(`/events/${(event as CalendarEvent).id}`)
-            }
-            components={{
-              toolbar: CustomToolbar as React.ComponentType<ToolbarProps>,
-            }}
-            defaultView="month"
-          />
-        </div>
+        {events.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <p className="text-gray-500 text-lg">You are not part of any events yet.{' '}
+              <Link
+                to="/events"
+                className="text-indigo-600 hover:underline">
+                Explore public events and join.
+              </Link>
+            </p>
+          </div>
+        ) : (
+          <div className="h-500px lg:h-[calc(100vh-200px)] p-4 mt-5 bg-gray-50 rounded-lg">
+            <Calendar
+              localizer={localizer}
+              events={calendarEvents}
+              startAccessor="start"
+              endAccessor="end"
+              view={currentView}
+              onView={setCurrentView}
+              date={currentDate}
+              onNavigate={setCurrentDate}
+              selectable={true}
+              onSelectSlot={(slot) => {
+                setCurrentDate(slot.start)
+                setCurrentView(Views.WEEK)
+              }}
+              onSelectEvent={(event) =>
+                navigate(`/events/${(event as CalendarEvent).id}`)
+              }
+              components={{
+                toolbar: CustomToolbar as React.ComponentType<ToolbarProps>,
+              }}
+              defaultView="month"
+            />
+          </div>
+        )}
       </div>
     </div>
   )
