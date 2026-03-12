@@ -4,6 +4,8 @@ import Navbar from '../components/Navbar'
 import { Search, Calendar, Clock, MapPin, Users } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
+import axios from 'axios'
+
 interface Event {
   id: number
   title: string
@@ -21,6 +23,8 @@ export default function EventsPage() {
   const [search, setSearch] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+    const [joining, setJoining] = useState(false)
+
 
   const { user, isAuthenticated } = useAuthStore()
   const navigate = useNavigate()
@@ -50,6 +54,22 @@ export default function EventsPage() {
     await api.post(`/events/${eventId}/join`)
     const response = await api.get('/events')
     setEvents(response.data)
+  }
+
+  const handleLeave = async (eventId: number, e: React.MouseEvent) => {
+    e.preventDefault()
+    setJoining(true)
+    try {
+      await api.post(`/events/${eventId}/leave`)
+      const response = await api.get(`/events`)
+      setEvents(response.data)
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        alert(error.response?.data?.message || 'Failed to leave')
+      }
+    } finally {
+      setJoining(false)
+    }
   }
 
   if (loading)
@@ -147,9 +167,18 @@ export default function EventsPage() {
 
                 if (isParticipant) {
                   return (
-                    <button className="w-full bg-gray-400 text-white py-2 rounded-lg cursor-not-allowed">
-                      Already joined
-                    </button>
+                    <div className="flex items-center gap-3 mt-auto ">
+                      <button
+                        onClick={(e) => handleLeave(event.id, e)}
+                        disabled={joining}
+                        className="w-full bg-red-400 text-white py-2 rounded-lg cursor-pointer hover:bg-red-300"
+                      >
+                        Leave
+                      </button>
+                      <button className="w-full bg-gray-400 text-white py-2 rounded-lg cursor-not-allowed">
+                        Already joined
+                      </button>
+                    </div>
                   )
                 }
 
