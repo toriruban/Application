@@ -46,16 +46,21 @@ export default function EventsPage() {
 
   const handleEvents = async (eventId: number, e: React.MouseEvent) => {
     e.preventDefault()
-
     if (!isAuthenticated) {
       navigate('/login')
       return
     }
-    await api.post(`/events/${eventId}/join`)
-    const response = await api.get('/events')
-    setEvents(response.data)
+    try {
+      await api.post(`/events/${eventId}/join`)
+      const response = await api.get('/events')
+      setEvents(response.data)
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        alert(error.response?.data?.message || 'Failed to join')
+      }
+    }
   }
-
+  
   const handleLeave = async (eventId: number, e: React.MouseEvent) => {
     e.preventDefault()
     setJoining(true)
