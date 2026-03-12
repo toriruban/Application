@@ -52,22 +52,28 @@ export default function EventsPage() {
     }
     try {
       await api.post(`/events/${eventId}/join`)
-      const response = await api.get('/events')
-      setEvents(response.data)
+      setEvents(prev => prev.map(ev =>
+        ev.id === eventId
+          ? { ...ev, participants: [...ev.participants, { userId: user!.id }] }
+          : ev
+      ))
     } catch (error) {
       if (axios.isAxiosError(error)) {
         alert(error.response?.data?.message || 'Failed to join')
       }
     }
   }
-  
+
   const handleLeave = async (eventId: number, e: React.MouseEvent) => {
     e.preventDefault()
     setJoining(true)
     try {
       await api.post(`/events/${eventId}/leave`)
-      const response = await api.get(`/events`)
-      setEvents(response.data)
+      setEvents(prev => prev.map(ev =>
+        ev.id === eventId
+          ? { ...ev, participants: ev.participants.filter(p => p.userId !== user!.id) }
+          : ev
+      ))
     } catch (error) {
       if (axios.isAxiosError(error)) {
         alert(error.response?.data?.message || 'Failed to leave')
