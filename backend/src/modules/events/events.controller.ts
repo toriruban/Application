@@ -2,6 +2,7 @@ import { Request, Response} from 'express';
 import prisma from '../../prisma/client';
 import { CreateEventDto, UpdateEventDto } from './events.dto';
 import { createEventSchema, updateEventSchema } from './events.validation';
+import * as yup from 'yup';
 
 export const getEvents = async(req: Request, res: Response) => {
     try {
@@ -59,6 +60,11 @@ export const createEvent = async (req: Request, res: Response) => {
         .json(event)
 
     } catch (error) {
+        if (error instanceof yup.ValidationError) {
+            res.status(400)
+                .json({ message: error.message })
+            return
+        }
         res.status(500)
         .json({message: 'Failed to create event'})
     }
@@ -94,6 +100,11 @@ export const updateEvent = async(req: Request, res:Response) => {
         .json(updateEvent)
 
     } catch (error) {
+        if (error instanceof yup.ValidationError) {
+            res.status(400)
+                .json({ message: error.message })
+            return
+        }
         res.status(500)
         .json({message: 'Failed to update event'})
     }
