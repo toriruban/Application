@@ -23,12 +23,12 @@ interface CalendarEvent {
   start: Date
   end: Date
 }
+const localizer = momentLocalizer(moment);
 
 export default function MyEventsPage() {
 
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-  const localizer = momentLocalizer(moment);
   const [currentView, setCurrentView] = useState<View>(Views.MONTH);
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -52,7 +52,7 @@ export default function MyEventsPage() {
     id: event.id,
     title: event.title,
     start: new Date(event.date),
-    end: new Date(event.date),
+    end: new Date(new Date(event.date).getTime() + 60 * 60 * 1000),
   }))
 
   if (loading)
