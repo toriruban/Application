@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import api from '../services/api';
 import axios from 'axios';
-import React from 'react';
+
 
 export default function RegisterPage() {
     const [name, setName] = useState('');
@@ -36,54 +36,83 @@ export default function RegisterPage() {
    };
 
    return (
-    <div className='min-h-screen bg-white flex items-center justify-center px-4'>
-        <div className='w-full max-w-sm bg-gray-800 rounded-xl p-8 flex flex-col gap-6'>
-             <h1 className='text-2xl font-bold text-center text-white'>Register</h1>
-        {error && (
-      <div className='bg-red-100 text-red-600 p-3 rounded'>
-        {error}
-      </div>
-    )}     
-    <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
-        <input
-          type='text'
-          placeholder='Name'
-          value={name}
-          onChange={(e)=> setName(e.target.value)}
-          className='border border-gray-600 bg-gray-700 text-white p-3 rounded placeholder-gray-400'
-          required
-        />
-        <input
-          type='email'
-          placeholder='Email'
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className='border border-gray-600 bg-gray-700 text-white p-3 rounded placeholder-gray-400'
-          required
-        />
-        <input
-          type='password'
-          placeholder='Password'
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className='border border-gray-600 bg-gray-700 text-white p-3 rounded placeholder-gray-400'
-          required
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className='cursor-pointer bg-blue-500 text-white p-3 rounded hover:bg-blue-600 disabled:opacity-50'
-        >
-        {loading ? 'Loading...' : 'Register'}
-        </button>
-    </form>
-    <p className='text-center text-gray-400'>
-      Already have an account?{' '}
-      <Link to="/login" className='text-blue-400 hover:underline'>
-        Log in
-      </Link>
-    </p>
-        </div>
-    </div>
-   );
+     <div className="min-h-screen bg-white flex items-center justify-center px-4">
+       <div className="w-full max-w-sm bg-gray-800 rounded-xl p-8 flex flex-col gap-6">
+         <h1 className="text-2xl font-bold text-center text-white">Register</h1>
+         {error && (
+           <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-lg text-sm text-center">
+             {error}
+           </div>
+         )}
+         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+           <RegisterFormFields
+             name={name}
+             email={email}
+             password={password}
+             setName={setName}
+             setEmail={setEmail}
+             setPassword={setPassword}
+           />
+           <button
+             type="submit"
+             disabled={loading}
+             className="cursor-pointer bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors font-medium mt-2"
+           >
+             {loading ? 'Loading...' : 'Register'}
+           </button>
+         </form>
+         <p className="text-center text-gray-400">
+           Already have an account?{' '}
+           <Link to="/login" className="text-blue-400 hover:underline">
+             Log in
+           </Link>
+         </p>
+       </div>
+     </div>
+   )
 }
+
+interface FieldsProps {
+  name: string;
+  email: string;
+  password: string;
+  setName: (v: string) => void;
+  setEmail: (v: string) => void;
+  setPassword: (v: string) => void;
+}
+
+const RegisterFormFields = ({
+  name,
+  email,
+  password,
+  setName,
+  setEmail,
+  setPassword,
+}: FieldsProps) => (
+  <>
+    <input
+      type="text"
+      placeholder="Name"
+      value={name}
+      onChange={(e) => setName(e.target.value)}
+      className="border border-gray-600 bg-gray-700 text-white p-3 rounded-lg placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
+      required
+    />
+    <input
+      type="email"
+      placeholder="Email"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+      className="border border-gray-600 bg-gray-700 text-white p-3 rounded-lg placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
+      required
+    />
+    <input
+      type="password"
+      placeholder="Password"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      className="border border-gray-600 bg-gray-700 text-white p-3 rounded-lg placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
+      required
+    />
+  </>
+)

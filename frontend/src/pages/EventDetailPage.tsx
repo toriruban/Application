@@ -1,35 +1,27 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { Calendar, Clock, MapPin, Users, ArrowLeft, X } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { useAuthStore } from '../store/authStore'
 import api from '../services/api'
 import axios from 'axios'
 import Navbar from '../components/Navbar'
-
-interface Event {
-  id: number
-  title: string
-  description: string
-  date: string
-  location: string
-  capacity: number | null
-  visibility: string
-  organizerId: number
-  organizer: { id: number; name: string }
-  participants: { userId: number; user: { id: number; name: string } }[]
-}
+import DeleteModal from '../components/DeleteModal'
+import { Toast } from '../components/Toast'
+import ParticipantsList from '../components/ParticipantsList'
+import type { EventDetail } from '../types/event'
+import EventMetaInfo from '../components/EventMetaInfo'
 
 export default function EventDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { isAuthenticated, user } = useAuthStore()
 
-  const [event, setEvent] = useState<Event | null>(null)
+  const [event, setEvent] = useState<EventDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [joining, setJoining] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [deleteSuccess, setDeleteSuccess] = useState(false)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error'} | null>(null)
 
 
   const isParticipant = event?.participants.some((p) => p.userId === user?.id)
@@ -58,9 +50,13 @@ export default function EventDetailPage() {
       await api.post(`/events/${id}/join`)
       const response = await api.get(`/events/${id}`)
       setEvent(response.data)
+      setToast({ message: 'Successfully joined the event', type: 'success' })
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        alert(error.response?.data?.message || 'Failed to join')
+        setToast({
+          message: error.response?.data?.message || 'Failed to join',
+          type: 'error',
+        })
       }
     } finally {
       setJoining(false)
@@ -73,27 +69,27 @@ export default function EventDetailPage() {
       await api.post(`/events/${id}/leave`)
       const response = await api.get(`/events/${id}`)
       setEvent(response.data)
+      setToast({ message: 'Successfully left the event', type: 'success' })
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        alert(error.response?.data?.message || 'Failed to leave')
+        setToast({
+          message: error.response?.data?.message || 'Failed to leave',
+          type: 'error',
+        })
       }
     } finally {
       setJoining(false)
     }
   }
 
-  const handleDeleteClick = () => {
-    setShowDeleteModal(true)
-  };
-
   const handleDeleteConfirm = async () => {
      setShowDeleteModal(false)
     try {
       await api.delete(`/events/${id}`)
-      setDeleteSuccess(true)  
+      setToast({ message: 'Event deleted successfully', type: 'success' })
       setTimeout(() => navigate('/events'), 1500)
     } catch {
-      alert('Failed to delete event')
+      setToast({ message: 'Failed to delete event' , type: 'error'})
     }
   }
   if (loading)
@@ -109,14 +105,17 @@ export default function EventDetailPage() {
         <p className="text-red-500">{error}</p>
       </div>
     )
+  
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      
-      {deleteSuccess && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg z-50">
-          Event deleted successfully
-        </div>
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
       )}
 
       <div className="max-w-3xl mx-auto px-6 py-8">
@@ -136,7 +135,7 @@ export default function EventDetailPage() {
               Edit
             </Link>
             <button
-              onClick={handleDeleteClick}
+              onClick={() => setShowDeleteModal(true)}
               className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 cursor-pointer"
             >
               Delete
@@ -145,118 +144,75 @@ export default function EventDetailPage() {
         )}
 
         {showDeleteModal && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4">
-              <div className="flex justify-end mb-2">
-                <button
-                  onClick={() => setShowDeleteModal(false)}
-                  className="bg-indigo-200 text-gray-800 hover:text-gray-900 rounded-full p-1.5 cursor-pointer"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              <p className="text-gray-600 mb-6">
-                Are you sure you want to delete this event?
-              </p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setShowDeleteModal(false)}
-                  className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 bg-green-200 hover:bg-green-400 hover:text-white cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDeleteConfirm}
-                  className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 bg-red-400 hover:bg-red-500 hover:text-white cursor-pointer"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
+          <DeleteModal
+            message="Are you sure you want to delete this event?"
+            onCancel={() => setShowDeleteModal(false)}
+            onConfirm={handleDeleteConfirm}
+          />
         )}
 
-        <div className="flex flex-col gap-3 text-gray-600 mb-6">
-          <div className="flex items-center gap-2">
-            <Calendar size={18} />
-            <span>{new Date(event.date).toLocaleDateString()}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Clock size={18} />
-            <span>
-              {new Date(event.date).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <MapPin size={18} />
-            <span>{event.location}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Users size={18} />
-            <span>
-              {event.participants.length} / {event.capacity ?? '∞'} participants
-            </span>
-          </div>
-        </div>
+        <EventMetaInfo event={event} />
 
-        {/* опис */}
         <p className="text-gray-700 mb-4">{event.description}</p>
         <hr className="border-gray-200 mb-4" />
 
-        {/* join/leave кнопка */}
         {isAuthenticated && !isOrganizer && (
-          <div className="mb-8">
-            {isParticipant ? (
-              <button
-                onClick={handleLeave}
-                disabled={joining}
-                className="cursor-pointer border border-gray-300 px-6 py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-              >
-                {joining ? 'Loading...' : 'Leave Event'}
-              </button>
-            ) : isFull ? (
-              <button
-                disabled
-                className="bg-gray-300 text-gray-500 px-6 py-2 rounded-lg cursor-not-allowed"
-              >
-                Full
-              </button>
-            ) : (
-              <button
-                onClick={handleJoin}
-                disabled={joining}
-                className="cursor-pointer bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 disabled:opacity-50"
-              >
-                {joining ? 'Loading...' : 'Join Event'}
-              </button>
-            )}
-          </div>
+          <ActionButtons
+            isParticipant={isParticipant}
+            isFull={isFull}
+            joining={joining}
+            onJoin={handleJoin}
+            onLeave={handleLeave}  
+           />
         )}
 
-        {/* список учасників */}
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Participants ({event.participants.length})
-          </h2>
-          {event.participants.length === 0 ? (
-            <p className="text-gray-400">No participants yet</p>
-          ) : (
-            <div className="flex flex-col gap-2">
-              {event.participants.map((p) => (
-                <div key={p.userId} className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-semibold text-sm">
-                    {p.user.name.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="text-gray-700">{p.user.name}</span>
-                </div>
-              ))}
-            </div>
-          )}
+        <ParticipantsList participants={event.participants} />
         </div>
       </div>
+  )
+}
+
+interface ActionButtonsProps {
+  isParticipant: boolean | undefined
+  isFull: boolean
+  joining: boolean
+  onJoin: () => void
+  onLeave: () => void
+}
+
+const ActionButtons = ({
+  isParticipant,
+  isFull,
+  joining,
+  onJoin,
+  onLeave,
+}: ActionButtonsProps) => {
+  return (
+    <div className="mb-8">
+      {isParticipant ? (
+        <button
+          onClick={onLeave}
+          disabled={joining}
+          className="cursor-pointer border border-gray-300 px-6 py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+        >
+          {joining ? 'Loading' : 'Leave Event'}
+        </button>
+      ) : isFull ? (
+        <button
+          disabled
+          className="bg-gray-300 text-gray-500 px-6 py-2 rounded-lg cursor-not-allowed"
+        >
+          Full
+        </button>
+      ) : (
+        <button
+          onClick={onJoin}
+          disabled={joining}
+          className="cursor-pointer bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 disabled:opacity-50"
+        >
+          {joining ? 'Loading' : 'Join Event'}
+        </button>
+      )}
     </div>
   )
 }

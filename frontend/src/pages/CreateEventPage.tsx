@@ -4,7 +4,8 @@ import api from '../services/api'
 import axios from 'axios'
 import Navbar from '../components/Navbar'
 import { Link } from 'react-router-dom'
-import { Calendar, Clock, ArrowLeft } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
+import EventFormFields from '../components/EventFormFields'
 
 export default function CreateEventPage() {
   const [title, setTitle] = useState('')
@@ -71,186 +72,36 @@ export default function CreateEventPage() {
             </p>
 
             {error && (
-              <div className="bg-red-100 text-red-600 p-3 rounded">{error}</div>
+              <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm mb-6 text-center">
+                {error}
+              </div>
             )}
 
-            {/* Event Title */}
-            <div className="flex flex-col gap-1 mb-6">
-              <label className="text-sm font-medium text-gray-700">
-                Event Title
-                <span className="text-red-500 pl-2">*</span>
-              </label>
-              <input
-                type="text"
-                value={title}
-                placeholder="e.g., Tech Conference 2026"
-                onChange={(e) => setTitle(e.target.value)}
-                className="mt-2 placeholder-gray-400 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                required
-              />
-            </div>
+            <EventFormFields
+              title={title}
+              setTitle={setTitle}
+              description={description}
+              setDescription={setDescription}
+              date={date}
+              setDate={setDate}
+              time={time}
+              setTime={setTime}
+              location={location}
+              setLocation={setLocation}
+              capacity={capacity}
+              setCapacity={setCapacity}
+              visibility={visibility}
+              setVisibility={setVisibility}
+            />
 
-            {/*Description */}
-            <div className="flex flex-col gap-1 mb-6">
-              <label className="text-sm font-medium text-gray-700">
-                Description
-                <span className="text-red-500 pl-2">*</span>
-              </label>
-              <textarea
-                placeholder="Describe what makes your event special..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={4}
-                className="mt-2 placeholder-gray-400 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-                required
-              />
-            </div>
-
-            {/* Date and Time */}
-            <div className="grid grid-cols-2 gap-2 mb-6">
-              {/* Date field */}
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-700">
-                  Date
-                  <span className="text-red-500 pl-2">*</span>
-                </label>
-                <div className="flex items-center gap-2 mt-2 border border-gray-300 rounded-lg px-4 py-2 focus-within:ring-2 focus-within:ring-indigo-500">
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    placeholder="dd.mm.yyyy"
-                    className={`flex-1 outline-none bg-transparent ${date ? 'text-gray-900' : 'text-gray-400'}`}
-                    required
-                  />
-                  <Calendar size={18} className="text-gray-400 shrink-0" />
-                </div>
-              </div>
-
-              {/* Time field */}
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-700">
-                  Time
-                  <span className="text-red-500 pl-2">*</span>
-                </label>
-                <div className="flex items-center gap-2 mt-2 border border-gray-300 rounded-lg px-4 py-2 focus-within:ring-2 focus-within:ring-indigo-500">
-                  <input
-                    type="time"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                    placeholder="--.--"
-                    className={`flex-1 outline-none bg-transparent ${time ? 'text-gray-900' : 'text-gray-400'}`}
-                    required
-                  />
-                  <Clock size={18} className="text-gray-400 shrink-0" />
-                </div>
-              </div>
-            </div>
-
-            {/* Location  */}
-            <div className="flex flex-col gap-1 mb-6">
-              <label className="text-sm font-medium text-gray-700">
-                Location
-                <span className="text-red-500 pl-2">*</span>
-              </label>
-              <input
-                type="text"
-                value={location}
-                placeholder="e.g., Convention Center, San Francisco"
-                onChange={(e) => setLocation(e.target.value)}
-                className="mt-2 placeholder-gray-400 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                required
-              />
-            </div>
-
-            {/* Capacity  */}
-            <div className="flex flex-col gap-1 mb-6">
-              <label className="text-sm font-medium text-gray-700">
-                Capacity
-                <span className="text-gray-700 pl-2">(optional)</span>
-              </label>
-              <input
-                type="number"
-                value={capacity}
-                placeholder="e.g., 100"
-                onChange={(e) => setCapacity(e.target.value)}
-                className="mt-2 placeholder-gray-400 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              <p className="mt-2 text-gray-400">
-                Maximum number of participants. Leave empty for unlimited
-                capacity.
-              </p>
-            </div>
-
-            {/* Visibility  */}
-            <div className="flex flex-col gap-1 mb-6">
-              <label className="text-sm font-medium text-gray-700">
-                Visibility
-              </label>
-
-              <div className="flex flex-col gap-4"></div>
-              {/* Public  */}
-              <label className="flex items-start gap-3 cursor-pointer group">
-                <div className="relative flex items-center ">
-                  <input
-                    type="radio"
-                    name="visibility"
-                    value="public"
-                    checked={visibility === 'public'}
-                    onChange={(e) => setVisibility(e.target.value)}
-                    className="w-4 h-4 accent-indigo-600 border-gray-300 focus:ring-indigo-500 cursor-pointer"
-                  />
-                </div>
-                <div className="flex flex-row">
-                  <span className="text-sm font-medium text-gray-500 mr-1">
-                    Public -
-                  </span>
-                  <span className="text-sm font-medium text-gray-500">
-                    Anyone can see and join this event
-                  </span>
-                </div>
-              </label>
-
-              {/* Private  */}
-              <label className="flex items-start gap-3 cursor-pointer group">
-                <div className="relative flex items-center ">
-                  <input
-                    type="radio"
-                    name="visibility"
-                    value="private"
-                    checked={visibility === 'private'}
-                    onChange={(e) => setVisibility(e.target.value)}
-                    className="w-4 h-4 accent-indigo-600 border-gray-300 focus:ring-indigo-500 cursor-pointer"
-                  />
-                </div>
-                <div className="flex flex-row">
-                  <span className="text-sm font-medium text-gray-500 mr-1">
-                    Private -
-                  </span>
-                  <span className="text-sm font-medium text-gray-500">
-                    Only invited people can see this event
-                  </span>
-                </div>
-              </label>
-            </div>
-
-            {/* Buttons  */}
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => navigate('/events')}
-                className="bg-gray-200 text-gray-500 hover:text-white hover:bg-red-500 cursor-pointer py-2 rounded-lg border border-slate-200"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="cursor-pointer py-2 bg-indigo-600 text-slate-50 px-4 rounded-lg hover:text-indigo-900 hover:bg-green-500"
-              >
-                {loading ? 'Creating...' : 'Create Event'}
-              </button>
-            </div>
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full mt-4 bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition-all font-medium disabled:opacity-50 cursor-pointer flex items-center justify-center"
+            >
+              {loading ? 'Creating...' : 'Create Event'}
+            </button>
           </div>
         </form>
       </div>

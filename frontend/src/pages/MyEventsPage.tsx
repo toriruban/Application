@@ -9,20 +9,8 @@ import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import CustomToolbar from '../components/CustomToolbar';
 import { useNavigate } from 'react-router-dom';
+import type { Event, CalendarEvent } from '../types/event'
 
-interface Event {
-  id: number
-  title: string
-  date: string
-  start?: Date
-  end?: Date
-}
-interface CalendarEvent {
-  id: number
-  title: string
-  start: Date
-  end: Date
-}
 const localizer = momentLocalizer(moment);
 
 export default function MyEventsPage() {
@@ -83,18 +71,10 @@ export default function MyEventsPage() {
         </div>
 
         {events.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <p className="text-gray-500 text-lg">You are not part of any events yet.{' '}
-              <Link
-                to="/events"
-                className="text-indigo-600 hover:underline">
-                Explore public events and join.
-              </Link>
-            </p>
-          </div>
+          <EmptyEventsState />
         ) : (
-          <div className="h-500px lg:h-[calc(100vh-200px)] p-4 mt-5 bg-gray-50 rounded-lg">
-            <Calendar
+          <div className="h-125 lg:h-[calc(100vh-200px)] p-4 mt-5 bg-gray-50 rounded-lg">
+            <Calendar<CalendarEvent>
               localizer={localizer}
               events={calendarEvents}
               startAccessor="start"
@@ -109,10 +89,10 @@ export default function MyEventsPage() {
                 setCurrentView(Views.WEEK)
               }}
               onSelectEvent={(event) =>
-                navigate(`/events/${(event as CalendarEvent).id}`)
+                navigate(`/events/${event.id}`)
               }
               components={{
-                toolbar: CustomToolbar as React.ComponentType<ToolbarProps>,
+                toolbar: CustomToolbar as React.ComponentType<ToolbarProps<CalendarEvent>>,
               }}
               defaultView="month"
             />
@@ -122,3 +102,14 @@ export default function MyEventsPage() {
     </div>
   )
 }
+
+const EmptyEventsState = () => (
+  <div className="flex flex-col items-center justify-center py-24 text-center">
+    <p className="text-gray-500 text-lg">
+      You are not part of any events yet.{' '}
+      <Link to="/events" className="text-indigo-600 hover:underline">
+        Explore public events and join.
+      </Link>
+    </p>
+  </div>
+)
