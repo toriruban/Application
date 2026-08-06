@@ -4,70 +4,67 @@ import api from '../services/api'
 import axios from 'axios'
 import Navbar from '../components/Navbar'
 import { ArrowLeft } from 'lucide-react'
-import EventFormFields from '../components/EventFormFields'
+import EventFormFields, { type EventFormData } from '../components/EventFormFields'
 
 export default function EditEventPage() {
   const { id } = useParams()
   const navigate = useNavigate()
 
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [date, setDate] = useState('')
-  const [time, setTime] = useState('')
-  const [location, setLocation] = useState('')
-  const [capacity, setCapacity] = useState('')
-  const [visibility, setVisibility] = useState('public')
-  const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [formData, setFormData] = useState<EventFormData>()
 
   useEffect(() => {
-    const fetchEvent = async () => {
+    const fetchEvents = async () => {
       try {
-        const response = await api.get(`/events/${id}`)
-        const ev = response.data
-        const d = new Date(ev.date)
+        const response = await api.get<EventFormData>(`/events/${id}`)
+        const event = response.data
+        const d = new Date(event.date)
 
-        setTitle(ev.title)
-        setDescription(ev.description)
-        setDate(d.toISOString().split('T')[0]) 
-        setTime(d.toTimeString().slice(0, 5))
-        setLocation(ev.location)
-        setCapacity(ev.capacity ? String(ev.capacity) : '')
-        setVisibility(ev.visibility)
+        setFormData({
+          title: event.title || '',
+          description: event.description || '',
+          date: d.toISOString().split('T')[0],
+          time: d.toTimeString().slice(0, 5),
+          location: event.location || '',
+          capacity: event.capacity ? Number(event.capacity) : null,
+          visibility: event.visibility === 'public' ? 'private' : 'public'
+        })
       } catch {
-        setError('Failed to load event')
+        setError('Failed to load event data')
       } finally {
         setLoading(false)
       }
     }
-    fetchEvent()
+    fetchEvents()
   }, [id])
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEditEvent = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (!formData) return
     setError('')
+    setLoading(true)
 
-    const eventDate = new Date(`${date}T${time}`)
+    const eventDate = new Date(`${formData.date}T${formData.time}`)
     if (eventDate < new Date()) {
-      setError('Cannot set event in the past')
+      setError('Cannot create event in the past')
+      setLoading(false)
       return
     }
 
     setSubmitting(true)
     try {
       await api.patch(`/events/${id}`, {
-        title,
-        description,
+        ...formData,
         date: eventDate.toISOString(),
-        location,
-        capacity: capacity ? Number(capacity) : null,
-        visibility,
-      })
+      })      
       navigate(`/events/${id}`)
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.message || 'Failed to update event')
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        setError(error.response?.data?.message || 'Failed to update event')
+      } else {
+        setError('An unexpected error occurred')
       }
     } finally {
       setSubmitting(false)
@@ -92,37 +89,20 @@ export default function EditEventPage() {
           <ArrowLeft size={16} /> Back
         </Link>
 
-        <form onSubmit={handleSubmit}>
-          <div className="max-w-2xl p-5 bg-neutral-50 rounded-lg border border-slate-200">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm mb-6 text-center">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleEditEvent}>
+          <div className="max-w-2xl p-5 bg-neutral-50 rounded-lg border border-slate-200 mx-auto">
             <h2 className="text-2xl font-bold text-gray-900 mb-1 ml-8">
-              Edit event
+              Edit Event
             </h2>
-            <p className="text-gray-500 mb-6">
-              Update the details of your event
-            </p>
+            <p className="text-gray-500 mb-6">Edit the details of event</p>
 
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm mb-6 text-center">
-                {error}
-              </div>
-            )}
-
-            <EventFormFields
-              title={title}
-              setTitle={setTitle}
-              description={description}
-              setDescription={setDescription}
-              date={date}
-              setDate={setDate}
-              time={time}
-              setTime={setTime}
-              location={location}
-              setLocation={setLocation}
-              capacity={capacity}
-              setCapacity={setCapacity}
-              visibility={visibility}
-              setVisibility={setVisibility}
-            />
+            <EventFormFields initialData={formData} onChange={setFormData}/>
 
             {/* Buttons */}
             <div className="grid grid-cols-2 gap-2">

@@ -9,13 +9,29 @@ import EventFormFields, { type EventFormData } from '../components/EventFormFiel
 
 export default function CreateEventPage() {
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  const handleCreateEvent = async (formData: EventFormData) => {
+  const [formData, setFormData] = useState<EventFormData | null>(null)
+  
+  const handleCreateEvent = async (e: React.SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!formData) return
     setError('')
+    setLoading(true)
+  
+    const eventDate = new Date(`${formData.date}T${formData.time}`)
+    if (eventDate < new Date()) {
+      setError('Cannot create event in the past')
+      setLoading(false)
+      return
+    }
 
     try {
-      const response = await api.post('/events', formData)
+      const response = await api.post('/events', {
+        ...formData,
+        date: eventDate.toISOString(),
+      })
       navigate(`/events/${response.data.id}`)
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -23,6 +39,8 @@ export default function CreateEventPage() {
       } else {
         setError('An unexpected error occurred')
       }
+    } finally {
+      setLoading(false)
     }
   }
     return (
@@ -42,10 +60,26 @@ export default function CreateEventPage() {
               {error}
             </div>
           )}
-        
-          <div className='flex justify-center'>
-            <EventFormFields onSubmit={handleCreateEvent} />
-          </div>
+          <form onSubmit={handleCreateEvent}>
+            <div className="max-w-2xl p-5 bg-neutral-50 rounded-lg border border-slate-200 mx-auto">
+              <h2 className="text-2xl font-bold text-gray-900 mb-1 ml-8">
+                Create new Event
+              </h2>
+              <p className="text-gray-500 mb-6">
+                Fill in the details to create an amazing event
+              </p>
+
+              <EventFormFields onChange={setFormData} />
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full mt-6 bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition-all font-medium disabled:opacity-50 cursor-pointer flex items-center justify-center"
+              >
+                {loading ? 'Creating...' : 'Create Event'}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     )
