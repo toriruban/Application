@@ -1,61 +1,60 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import api from '../services/api'
 import axios from 'axios'
 
-export function useEventActions(id: string | undefined, onRefresh: () => Promise<void>) {
-    const [loadingAction, setLoadingAction] = useState(false)
-    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
-    
-    const handleJoin = async () => {
-        if (!id) return
-        setLoadingAction(true)
-        try {
-            await api.post(`/events/${id}/join`)
-            await onRefresh()
-            setToast({ message: 'Successfully joined the event', type: 'success' })
-        } catch (error) {
-            const msg = axios.isAxiosError(error) ? error.response?.data?.message : 'Failed to join'
-            setToast({ message: msg || 'Failed to join', type: 'error' })
-        } finally {
-            setLoadingAction(false)
-        }
-    }
+export type EventActionType = 'join' | 'leave' | 'delete' | null
 
-    const handleLeave = async () => {
-        if (!id) return
-        setLoadingAction(true)
-        try {
-            await api.post(`/events/${id}/leave`)
-            await onRefresh()
-            setToast({ message: 'Successfully left', type: 'success' })
-        } catch (error) {
-            const msg = axios.isAxiosError(error) ? error.response?.data?.message : 'Failed to leave'
-            setToast({ message: msg || 'Failed to leave', type: 'error' })
-        } finally {
-            setLoadingAction(false)
-        }
-    }
+export function useEventActions(eventId: string | undefined) {
+    const [activeAction, setActiveAction] = useState<EventActionType>(null)
+    const [error, setError] = useState<string | null>(null)
+    const executeAction = useCallback(
+        async (
+            actionType: EventActionType,
+            apiCall: () => Promise<void>
+        ): Promise<boolean> => {
+            if (!eventId) return false
+            setActiveAction(actionType)
+            setError(null)
 
-    const handleDelete = async () => {
-        if (!id) return
-        setLoadingAction(true)
-        try {
-            await api.delete(`/events/${id}`)
-            await onRefresh()
-            setToast({ message: 'Successfully deleted', type: 'success' })
-        } catch (error) {
-            const msg = axios.isAxiosError(error) ? error.response?.data?.message : 'Failed to delete'
-            setToast({ message: msg || 'Failed to delete an event', type: 'error'})
-        } finally {
-            setLoadingAction(false)
-        }
-    }
+            try {
+                await apiCall()
+                return true
+            } catch (error) {
+                const message = axios.isAxiosError(error)
+                    ? error.response?.data?.message
+                    : 'An unexpected error occurred'
+                
+                setError(message || 'Action failed')
+                return false
+            } finally {
+                setActiveAction(null)
+            }
+
+        }, [eventId]
+    )
+
+    const joinEvent = useCallback(
+        () => executeAction('join', () => api.post(`/events/${eventId}/join`)),
+        [eventId, executeAction]
+    )
+
+    const leaveEvent = useCallback(
+      () => executeAction('leave', () => api.post(`/events/${eventId}/leave`)),
+        [ eventId, executeAction]
+    )
+
+    const deleteEvent = useCallback(
+      () => executeAction('delete', () => api.delete(`/events/${eventId}/delete`)),
+        [eventId, executeAction]
+    )
+
     return {
-        loadingAction,
-        toast,
-        setToast,
-        handleDelete,
-        handleJoin,
-        handleLeave,
+        joinEvent,
+        leaveEvent,
+        deleteEvent,
+        activeAction,
+        isPending: activeAction !== null,
+        error,
+        clearError: () => setError(null)
     }
 }
