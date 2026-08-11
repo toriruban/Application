@@ -44,7 +44,7 @@ export function useEventActions(eventId: string | undefined) {
     )
 
     const deleteEvent = useCallback(
-      () => executeAction('delete', () => api.delete(`/events/${eventId}/delete`)),
+      () => executeAction('delete', () => api.delete(`/events/${eventId}`)),
         [eventId, executeAction]
     )
 
