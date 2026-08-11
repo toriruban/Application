@@ -12,48 +12,55 @@ export default function EditEventPage() {
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState<EventFormData>()
 
   useEffect(() => {
+    let isMounted = true
     const fetchEvents = async () => {
+      if (!id) return
       try {
         const response = await api.get<EventFormData>(`/events/${id}`)
         const event = response.data
         const d = new Date(event.date)
 
-        setFormData({
-          title: event.title || '',
-          description: event.description || '',
-          date: d.toISOString().split('T')[0],
-          time: d.toTimeString().slice(0, 5),
-          location: event.location || '',
-          capacity: event.capacity ? Number(event.capacity) : null,
-          visibility: event.visibility === 'public' ? 'private' : 'public'
-        })
+        if (isMounted) {
+          setFormData({
+            title: event.title || '',
+            description: event.description || '',
+            date: d.toISOString().split('T')[0],
+            time: d.toTimeString().slice(0, 5),
+            location: event.location || '',
+            capacity: event.capacity ? Number(event.capacity) : null,
+            visibility: event.visibility || 'public'
+          })
+        }
       } catch {
-        setError('Failed to load event data')
+        if (isMounted) setError('Failed to load event data')
       } finally {
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     }
     fetchEvents()
+    return () => {
+      isMounted = false
+    }
   }, [id])
 
   const handleEditEvent = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!formData) return
+    
     setError('')
-    setLoading(true)
+    setSubmitting(true)
 
     const eventDate = new Date(`${formData.date}T${formData.time}`)
     if (eventDate < new Date()) {
-      setError('Cannot create event in the past')
-      setLoading(false)
+      setError('Cannot set event date in the past')
+      setSubmitting(false)
       return
     }
 
-    setSubmitting(true)
     try {
       await api.patch(`/events/${id}`, {
         ...formData,
