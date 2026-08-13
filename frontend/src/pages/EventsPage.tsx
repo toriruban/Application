@@ -14,7 +14,7 @@ export default function EventsPage() {
   const [search, setSearch] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
-  const [joining, setJoining] = useState(false)
+  const [actionTargetId, setActionTargetId] = useState<number | null>(null)
   const [toast, setToast] = useState<{
       message: string
       type: 'success' | 'error'
@@ -59,7 +59,7 @@ export default function EventsPage() {
 
   const handleLeave = async (eventId: number, e: React.MouseEvent) => {
     e.preventDefault()
-    setJoining(true)
+    setActionTargetId(eventId)
     try {
       await api.post(`/events/${eventId}/leave`)
       setEvents(prev => prev.map(ev =>
@@ -75,7 +75,7 @@ export default function EventsPage() {
         })
       }
     } finally {
-      setJoining(false)
+      setActionTargetId(null)
     }
   }
 
@@ -133,14 +133,14 @@ export default function EventsPage() {
         </div>
 
         {/* картки */}
-        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {filteredEvents.map((event) => (
             <EventCard
               key={event.id}
               event={event}
-              isPending={joining}
+              isPending={actionTargetId === event.id}
               onJoin={handleEvents}
-              onLeave={handleLeave}     
+              onLeave={handleLeave}
             />
           ))}
         </div>
