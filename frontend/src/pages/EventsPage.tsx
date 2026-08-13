@@ -2,14 +2,12 @@ import { useEffect, useState } from 'react'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
 import { Search } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import axios from 'axios'
 import type { EventSummary } from '../types/event'
-import EventMetaInfo from '../components/EventMetaInfo'
 import { Toast } from '../components/Toast'
-
-
+import EventCard from '../components/EventCard'
 
 export default function EventsPage() {
   const [events, setEvents] = useState<EventSummary[]>([])
@@ -135,67 +133,16 @@ export default function EventsPage() {
         </div>
 
         {/* картки */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {filteredEvents.map((event) => {
-            const isParticipant =
-              user && event.participants.some((p) => p.userId === user.id)
-            const isFull = event.capacity
-              ? event.participants.length >= event.capacity
-              : false
-            return (
-              <Link
-                key={event.id}
-                to={`/events/${event.id}`}
-                className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col gap-3 group cursor-pointer"
-              >
-                <h3 className="text-lg font-semibold text-neutral-900 group-hover:text-indigo-600">
-                  {event.title}
-                </h3>
-                <p className="text-neutral-500 text-sm">{event.description}</p>
-
-                <div className="flex flex-col gap-2 text-sm text-neutral-500">
-                  <EventMetaInfo event={event} />
-                </div>
-
-                <hr className="border-gray-200" />
-
-                <div className="mt-auto">
-                  {isParticipant ? (
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={(e) => handleLeave(event.id, e)}
-                        disabled={joining}
-                        className="w-full bg-red-400 text-white py-2 rounded-lg cursor-pointer hover:bg-red-300 disabled:opacity-50"
-                      >
-                        Leave
-                      </button>
-                      <button
-                        disabled
-                        className="w-full bg-gray-400 text-white py-2 rounded-lg cursor-not-allowed"
-                      >
-                        Already joined
-                      </button>
-                    </div>
-                  ) : isFull ? (
-                    <button
-                      disabled
-                      className="w-full bg-gray-400 text-white py-2 rounded-lg cursor-not-allowed"
-                    >
-                      Event Full
-                    </button>
-                  ) : (
-                    <button
-                      onClick={(e) => handleEvents(event.id, e)}
-                      disabled={joining}
-                      className="cursor-pointer w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 disabled:opacity-50"
-                    >
-                      Join Event
-                    </button>
-                  )}
-                </div>
-              </Link>
-            )
-          })}
+        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+          {filteredEvents.map((event) => (
+            <EventCard
+              key={event.id}
+              event={event}
+              isPending={joining}
+              onJoin={handleEvents}
+              onLeave={handleLeave}     
+            />
+          ))}
         </div>
       </div>
     </div>
