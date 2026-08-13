@@ -24,17 +24,29 @@ export default function EventsPage() {
 
 
   useEffect(() => {
+    let isMounted = true
     const fetchEvents = async () => {
       try {
         const response = await api.get('/events')
-        setEvents(response.data)
+        if (isMounted) {
+           setEvents(response.data)
+        }
+        
       } catch {
-        setError('Failed to fetch events')
+        if (isMounted) {
+           setError('Failed to fetch events')
+        }
       } finally {
-        setLoading(false)
+        if (isMounted) {
+          setLoading(false)
+        }
+        
       }
     }
     fetchEvents()
+    return () => {
+      isMounted = false
+    } 
   }, [])
 
   const handleEvents = async (eventId: number, e: React.MouseEvent) => {
