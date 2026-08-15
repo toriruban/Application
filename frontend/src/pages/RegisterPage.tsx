@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import api from '../services/api';
 import axios from 'axios';
+import RegisterFormFields from '../components/RegisterFormFields';
 
 
 export default function RegisterPage() {
@@ -12,26 +13,38 @@ export default function RegisterPage() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const { setAuth } = useAuthStore();
-    const navigate = useNavigate();
+  const { setAuth } = useAuthStore();
+  const navigate = useNavigate();
+  const isMounted = useRef(true);
 
-    const handleSubmit = async (e: React.FormEvent) => { 
+  useEffect(() => {
+    return () => {
+      isMounted.current = false
+    };
+  }, [])
+
+    const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => { 
         e.preventDefault();
         setError(''); 
-        setLoading(true); 
+      setLoading(true); 
 
     try {
         const response = await api.post('/auth/register', { name, email, password });
         setAuth(response.data.token, response.data.user);
         navigate('/events');
     } catch (error) {
-        if(axios.isAxiosError(error)) {
-            setError(error.response?.data?.message || 'Register Failed');
+      if (isMounted.current) {
+        if (axios.isAxiosError(error)) {
+          setError(error.response?.data?.message || 'Register Failed')
+        
         } else {
-            setError('Register Failed')
+          setError('Register Failed')
         }
+      }
     }  finally {
-        setLoading(false);
+      if (isMounted.current) {
+          setLoading(false)
+        }
     } 
    };
 
@@ -71,48 +84,3 @@ export default function RegisterPage() {
      </div>
    )
 }
-
-interface FieldsProps {
-  name: string;
-  email: string;
-  password: string;
-  setName: (v: string) => void;
-  setEmail: (v: string) => void;
-  setPassword: (v: string) => void;
-}
-
-const RegisterFormFields = ({
-  name,
-  email,
-  password,
-  setName,
-  setEmail,
-  setPassword,
-}: FieldsProps) => (
-  <>
-    <input
-      type="text"
-      placeholder="Name"
-      value={name}
-      onChange={(e) => setName(e.target.value)}
-      className="border border-gray-600 bg-gray-700 text-white p-3 rounded-lg placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
-      required
-    />
-    <input
-      type="email"
-      placeholder="Email"
-      value={email}
-      onChange={(e) => setEmail(e.target.value)}
-      className="border border-gray-600 bg-gray-700 text-white p-3 rounded-lg placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
-      required
-    />
-    <input
-      type="password"
-      placeholder="Password"
-      value={password}
-      onChange={(e) => setPassword(e.target.value)}
-      className="border border-gray-600 bg-gray-700 text-white p-3 rounded-lg placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
-      required
-    />
-  </>
-)
