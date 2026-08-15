@@ -1,15 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../services/api'
-import Navbar from '../components/Navbar';
 import { Plus } from 'lucide-react';
 import { Calendar, momentLocalizer, Views, type View } from 'react-big-calendar';
+import moment from 'moment'
+import 'react-big-calendar/lib/css/react-big-calendar.css'
+
+
+import api from '../services/api'
+import Navbar from '../components/Navbar'
 import { type ToolbarProps } from 'react-big-calendar'
-import moment from 'moment';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
 import CustomToolbar from '../components/CustomToolbar';
 import { useNavigate } from 'react-router-dom';
 import type { Event, CalendarEvent } from '../types/event'
+import EmptyEventsState from '../components/EmptyEventsState';
 
 const localizer = momentLocalizer(moment);
 
@@ -23,25 +26,34 @@ export default function MyEventsPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let isMounted = true
     const fetchMyEvents = async () => {
       try {
         const response = await api.get('/users/me/events')
-        setEvents(response.data)
+        if (isMounted) {
+          setEvents(response.data)
+       }
       } catch {
         console.error('Failed to fetch events')
       } finally {
-        setLoading(false)
+        if (isMounted) {
+          setLoading(false)
+        }
+        
       }
     }
     fetchMyEvents()
+    return () => { isMounted = false }
   }, [])
 
-  const calendarEvents: CalendarEvent[] = events.map((event) => ({
-    id: event.id,
-    title: event.title,
-    start: new Date(event.date),
-    end: new Date(new Date(event.date).getTime() + 60 * 60 * 1000),
-  }))
+  const calendarEvents = useMemo<CalendarEvent[]>(() => {
+    return events.map((event) => ({
+      id: event.id,
+      title: event.title,
+      start: new Date(event.date),
+      end: new Date(new Date(event.date).getTime() + 60 * 60 * 1000),
+    }))
+  }, [events])
 
   if (loading)
     return (
@@ -102,14 +114,3 @@ export default function MyEventsPage() {
     </div>
   )
 }
-
-const EmptyEventsState = () => (
-  <div className="flex flex-col items-center justify-center py-24 text-center">
-    <p className="text-gray-500 text-lg">
-      You are not part of any events yet.{' '}
-      <Link to="/events" className="text-indigo-600 hover:underline">
-        Explore public events and join.
-      </Link>
-    </p>
-  </div>
-)
