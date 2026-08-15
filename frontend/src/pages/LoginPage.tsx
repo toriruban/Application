@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import api from '../services/api';
 import axios from 'axios';
+import LoginFormFields from '../components/LoginFormFields';
 
 export default function LoginPage() {
    const [email, setEmail] = useState('');
@@ -10,10 +11,17 @@ export default function LoginPage() {
    const [error, setError] = useState('');
    const [loading, setLoading] = useState(false);
 
-   const { setAuth } = useAuthStore();
-   const navigate = useNavigate();
+  const { setAuth } = useAuthStore();
+  const navigate = useNavigate();
+  const isMounted = useRef(true)
 
-   const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    return () => {
+      isMounted.current = false
+    }
+  },[])
+
+   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -23,13 +31,17 @@ export default function LoginPage() {
         setAuth(response.data.token, response.data.user);
         navigate('/events');
     } catch (error) {
-        if(axios.isAxiosError(error)) {
-            setError(error.response?.data?.message || 'Login failed');
+      if (isMounted.current) {
+        if (axios.isAxiosError(error)) {
+          setError(error.response?.data?.message || 'Login failed') 
         } else {
-            setError('Login failed')
+          setError('Login failed')
         }
+      }
     } finally {
-        setLoading(false);
+      if (isMounted.current) {
+          setLoading(false)
+      }
     }
    };
 
@@ -70,36 +82,3 @@ export default function LoginPage() {
      </div>
    )
 }
-
-interface LoginFieldsProps {
-  email: string
-  password: string
-  setEmail: (v: string) => void
-  setPassword: (v: string) => void
-}
-
-const LoginFormFields = ({
-  email,
-  password,
-  setEmail,
-  setPassword,
-}: LoginFieldsProps) => (
-  <>
-    <input
-      type="email"
-      placeholder="Email"
-      value={email}
-      onChange={(e) => setEmail(e.target.value)}
-      className="border border-gray-600 bg-gray-700 text-white p-3 rounded-lg placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
-      required
-    />
-    <input
-      type="password"
-      placeholder="Password"
-      value={password}
-      onChange={(e) => setPassword(e.target.value)}
-      className="border border-gray-600 bg-gray-700 text-white p-3 rounded-lg placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
-      required
-    />
-  </>
-)
